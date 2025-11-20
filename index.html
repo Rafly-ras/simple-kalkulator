@@ -4,68 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kalkulator Sederhana</title>
-  <style>
-    :root{
-      --bg: #0f1724;
-      --panel: #0b1220;
-      --accent: #7c5cff;
-      --muted: #94a3b8;
-      --glass: rgba(255,255,255,0.04);
-      --btn: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08));
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;display:flex;align-items:center;justify-content:center;
-      background: radial-gradient(1000px 500px at 10% 10%, rgba(124,92,255,0.12), transparent),
-                  radial-gradient(800px 400px at 90% 90%, rgba(0,200,255,0.04), transparent),
-                  var(--bg);
-      color:#e6eef8;padding:24px;
-    }
-
-    .card{
-      width:360px;max-width:96vw;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.06));
-      border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(2,6,23,0.6);
-      border:1px solid rgba(255,255,255,0.03);
-    }
-
-    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .title{font-weight:600;font-size:18px}
-    .sub{font-size:12px;color:var(--muted)}
-
-    .display{
-      background:var(--panel);padding:14px;border-radius:10px;text-align:right;min-height:72px;display:flex;flex-direction:column;justify-content:center;gap:4px;
-      border:1px solid var(--glass);
-    }
-    .expression{font-size:14px;color:var(--muted);word-break:break-all}
-    .result{font-size:28px;font-weight:600}
-
-    .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
-    button{
-      background:var(--btn);border:0;padding:14px;border-radius:10px;font-size:18px;color:inherit;cursor:pointer;transition:transform .06s ease, box-shadow .06s ease;
-      box-shadow:0 4px 10px rgba(2,6,23,0.5);
-    }
-    button:active{transform:translateY(1px)}
-    button.op{background:linear-gradient(180deg, rgba(124,92,255,0.14), rgba(124,92,255,0.06));color:white}
-    button.equal{grid-column:span 2;background:linear-gradient(180deg,#00bcd4,#0097a7);}
-    button.clear{background:linear-gradient(180deg, #ff6b6b, #ff4757);}
-    button.wide{grid-column:span 2}
-
-    .foot{margin-top:12px;font-size:12px;color:var(--muted);text-align:center}
-
-    /* keyboard focus */
-    button:focus{outline:3px solid rgba(124,92,255,0.18)}
-
-    /* small screens */
-    @media (max-width:380px){
-      .card{padding:12px}
-      .display{min-height:64px}
-      button{padding:12px;font-size:16px}
-      .result{font-size:24px}
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="card" role="application" aria-label="Kalkulator Sederhana">
@@ -83,118 +22,34 @@
     </div>
 
     <div class="pad" role="group" aria-label="Tombol kalkulator">
-      <button class="clear" data-action="clear" aria-label="bersihkan">C</button>
-      <button data-action="back" aria-label="hapus">⌫</button>
-      <button data-value="%" class="op" aria-label="modulo">%</button>
-      <button data-value="/" class="op" aria-label="bagi">÷</button>
+      <button class="clear" data-action="clear">C</button>
+      <button data-action="back">⌫</button>
+      <button data-value="%" class="op">%</button>
+      <button data-value="/" class="op">÷</button>
 
       <button data-value="7">7</button>
       <button data-value="8">8</button>
       <button data-value="9">9</button>
-      <button data-value="*" class="op" aria-label="kali">×</button>
+      <button data-value="*" class="op">×</button>
 
       <button data-value="4">4</button>
       <button data-value="5">5</button>
       <button data-value="6">6</button>
-      <button data-value="-" class="op" aria-label="minus">−</button>
+      <button data-value="-" class="op">−</button>
 
       <button data-value="1">1</button>
       <button data-value="2">2</button>
       <button data-value="3">3</button>
-      <button data-value="+" class="op" aria-label="tambah">+</button>
+      <button data-value="+" class="op">+</button>
 
       <button data-value="0" class="wide">0</button>
-      <button data-value="." aria-label="desimal">.</button>
-      <button class="equal" data-action="equals" aria-label="sama dengan">=</button>
+      <button data-value=".">.</button>
+      <button class="equal" data-action="equals">=</button>
     </div>
 
     <div class="foot">Simple kalkulator menggunakan HTML, CSS, dan JavaScript</div>
   </div>
 
-  <script>
-    // parsing dan evaluasi yang aman.
-    (function(){
-      const exprEl = document.getElementById('expr');
-      const resEl = document.getElementById('res');
-      const buttons = document.querySelectorAll('button[data-value], button[data-action]');
-
-      let expression = '';
-      let lastResult = null;
-
-      function updateDisplay(){
-        exprEl.textContent = expression || '\u00A0';
-        resEl.textContent = expression ? expression : '0';
-      }
-
-      function safeEval(exp){
-        // Hanya izinkan angka, titik, dan operator +-*/%() spasi
-        if(!/^[0-9()+\-*/%.\s]+$/.test(exp)) return 'Error';
-        try{
-          // Replace unicode operators for display safety
-          const normalized = exp.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
-          // eslint-disable-next-line no-eval
-          const val = Function('return (' + normalized + ')')();
-          if(typeof val === 'number' && isFinite(val)) return String(val);
-          return 'Error';
-        }catch(e){
-          return 'Error';
-        }
-      }
-
-      function pressValue(v){
-        // Prevent multiple dots in a number segment
-        if(v === '.'){
-          const parts = expression.split(/[^0-9.]/);
-          const last = parts[parts.length-1];
-          if(last.includes('.')) return;
-        }
-        // prevent starting with operator except minus
-        if(/^[+*/%]/.test(v) && expression === '') return;
-        expression += v;
-        lastResult = null;
-        resEl.textContent = expression;
-        exprEl.textContent = expression;
-      }
-
-      function clearAll(){ expression = ''; lastResult = null; updateDisplay(); }
-      function backspace(){ expression = expression.slice(0,-1); updateDisplay(); }
-
-      function equals(){
-        if(!expression) return;
-        const out = safeEval(expression);
-        resEl.textContent = out;
-        exprEl.textContent = expression + ' =';
-        if(out !== 'Error'){
-          expression = String(out);
-          lastResult = out;
-        } else {
-          // keep expression for user to fix
-        }
-      }
-
-      buttons.forEach(b => {
-        b.addEventListener('click', ()=>{
-          const v = b.getAttribute('data-value');
-          const action = b.getAttribute('data-action');
-          if(action === 'clear') return clearAll();
-          if(action === 'back') return backspace();
-          if(action === 'equals') return equals();
-          if(v) return pressValue(v);
-        });
-      });
-
-      // keyboard support
-      window.addEventListener('keydown', (e)=>{
-        if(e.key === 'Enter' || e.key === '='){ equals(); e.preventDefault(); return; }
-        if(e.key === 'Backspace'){ backspace(); return; }
-        if(e.key === 'Escape'){ clearAll(); return; }
-        if(/^[0-9]$/.test(e.key)) pressValue(e.key);
-        if(['+','-','*','/','%','.','(',')'].includes(e.key)) pressValue(e.key);
-      });
-
-      // init
-      updateDisplay();
-    })();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
